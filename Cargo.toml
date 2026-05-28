@@ -1,0 +1,41 @@
+[package]
+name = "tumpa-uniffi"
+version = "0.1.0"
+edition = "2021"
+license = "GPL-3.0-or-later"
+description = "UniFFI bindings to libtumpa for the Tumpa Mail macOS extension."
+publish = false
+
+[lib]
+name = "tumpa_uniffi"
+crate-type = ["staticlib", "cdylib", "lib"]
+
+# Embedded uniffi-bindgen so a fresh checkout doesn't need a separately
+# installed bindgen binary. Run via `cargo run --release --bin uniffi-bindgen`.
+[[bin]]
+name = "uniffi-bindgen"
+path = "src/bin/uniffi-bindgen.rs"
+
+[dependencies]
+# Pinned to crates.io releases. libtumpa 0.4.1 ships the throw-keyid
+# `*_with_hidden` encryption primitives and the Autocrypt minimised
+# key export. wecanencrypt is pulled in transitively from libtumpa
+# anyway; declared explicitly so we can use KeyStore methods directly.
+libtumpa = { version = "0.4.1", default-features = false, features = ["card"] }
+wecanencrypt = { version = "0.16.1", default-features = false, features = ["keystore", "card-pcsc"] }
+uniffi = { version = "0.29", features = ["cli"] }
+thiserror = "2"
+log = "0.4"
+zeroize = "1"
+
+[build-dependencies]
+uniffi = { version = "0.29", features = ["build"] }
+
+[dev-dependencies]
+tempfile = "3"
+env_logger = "0.11"
+# rpgp pulled in for smoke tests that need to walk OpenPGP packets
+# (PKESK throw-keyid check, parse-back of Autocrypt-minimised exports).
+# Version pinned to whatever wecanencrypt brings in transitively.
+pgp = { version = "0.19", default-features = false, features = ["bzip2"] }
+
